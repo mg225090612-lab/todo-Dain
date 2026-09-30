@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할 일 목록</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>할 일 목록</h1>
+
+    <!-- 할 일 입력 칸과 추가 버튼 -->
+    <div class="input-row">
+      <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off">
+      <button id="add-button" type="button">추가</button>
+    </div>
+
+    <!-- 할 일들이 여기에 들어가요 -->
+    <ul id="todo-list"></ul>
+
+    <!-- 할 일이 하나도 없을 때 보이는 문구 -->
+    <p id="empty-message">할 일이 없습니다 🎉</p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
