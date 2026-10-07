@@ -70,6 +70,22 @@ h1 {
   background: #3867e6;
 }
 
+/* 저장하는 동안 잠긴 버튼 */
+#add-button:disabled {
+  background: #a9bfff;
+  cursor: default;
+}
+
+/* 오류 안내 칸 */
+#error-message {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fdecec;
+  color: #c62828;
+  font-size: 14px;
+}
+
 /* 할 일 목록 */
 #todo-list {
   margin: 0;

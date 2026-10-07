@@ -17,6 +17,9 @@
       <button id="add-button" type="button">추가</button>
     </div>
 
+    <!-- 저장·불러오기에 실패하면 여기에 오류가 보여요 -->
+    <p id="error-message" role="alert" hidden></p>
+
     <!-- 할 일들이 여기에 들어가요 -->
     <ul id="todo-list"></ul>
 
@@ -24,6 +27,9 @@
     <p id="empty-message">할 일이 없습니다 🎉</p>
   </main>
 
+  <!-- 순서가 중요해요: Supabase 라이브러리 → 접속 정보 → 앱 코드 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
