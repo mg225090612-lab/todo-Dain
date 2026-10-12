@@ -1,5 +1,6 @@
 // 화면에 있는 요소들을 찾아 둬요
 const input = document.getElementById("todo-input");
+const authorInput = document.getElementById("author-input");
 const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
@@ -13,7 +14,8 @@ const db = window.supabase
   : null;
 
 // 할 일 목록. Supabase의 todos 표 한 줄이 할 일 하나예요.
-// 예: [{ id: 1, title: "장보기", is_done: false, created_at: "..." }]
+// 예: [{ id: 1, title: "장보기", author: "다인", is_done: false, created_at: "..." }]
+// (작성자 이름을 안 적은 할 일은 author가 null이에요)
 let todos = [];
 
 // 처음에 Supabase에서 목록을 불러오는 중인지
@@ -43,7 +45,15 @@ function render() {
     deleteButton.title = "삭제";
     deleteButton.addEventListener("click", () => deleteTodo(todo.id));
 
-    li.append(checkbox, text, deleteButton);
+    // 작성자 이름은 할 일 오른쪽에 작은 회색 글씨로 보여줘요. 이름이 없으면 안 붙여요.
+    li.append(checkbox, text);
+    if (todo.author) {
+      const author = document.createElement("span");
+      author.className = "todo-author";
+      author.textContent = todo.author;
+      li.append(author);
+    }
+    li.append(deleteButton);
     list.append(li);
   }
 
@@ -90,12 +100,15 @@ async function addTodo() {
   const title = input.value.trim();
   if (title === "") return;
 
+  // 이름은 안 적어도 돼요. 비어 있으면 null(값 없음)로 저장해요.
+  const author = authorInput.value.trim() || null;
+
   // 저장하는 동안 버튼을 잠가서 두 번 추가되지 않게 해요
   addButton.disabled = true;
 
   const { data, error } = await db
     .from("todos")
-    .insert({ title: title })
+    .insert({ title: title, author: author })
     .select()
     .single();
 
@@ -111,6 +124,7 @@ async function addTodo() {
   todos.push(data);
   render();
 
+  // 할 일 칸만 비워요. 이름은 다음에도 쓰기 쉽게 그대로 둬요.
   input.value = "";
   input.focus();
 }
@@ -150,14 +164,18 @@ async function deleteTodo(id) {
 
 addButton.addEventListener("click", addTodo);
 
-input.addEventListener("keydown", (event) => {
+// 할 일 칸이나 이름 칸에서 Enter를 누르면 추가해요
+function handleEnter(event) {
   // 한글을 조합하는 중(글자가 아직 완성되지 않은 상태)에 누른 Enter는 무시해요.
   // 이걸 안 하면 Enter 한 번에 할 일이 두 번 추가될 수 있어요.
   if (event.isComposing || event.keyCode === 229) return;
 
   // 저장 중에 Enter를 또 눌러도 두 번 추가되지 않게 해요
   if (event.key === "Enter" && !addButton.disabled) addTodo();
-});
+}
+
+input.addEventListener("keydown", handleEnter);
+authorInput.addEventListener("keydown", handleEnter);
 
 // 처음 열었을 때 "불러오는 중"을 보여주고, Supabase에서 목록을 가져와요
 render();

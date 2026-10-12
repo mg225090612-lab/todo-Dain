@@ -40,7 +40,8 @@ h1 {
   margin-bottom: 20px;
 }
 
-#todo-input {
+#todo-input,
+#author-input {
   flex: 1;
   min-width: 0;
   padding: 12px 14px;
@@ -50,7 +51,13 @@ h1 {
   font-family: inherit;
 }
 
-#todo-input:focus {
+/* 이름 칸은 좁게 */
+#author-input {
+  flex: 0 0 88px;
+}
+
+#todo-input:focus,
+#author-input:focus {
   outline: none;
   border-color: #4a7dff;
 }
@@ -110,6 +117,17 @@ h1 {
 .todo-text {
   flex: 1;
   word-break: break-all;
+}
+
+/* 할 일 오른쪽의 작성자 이름 */
+.todo-author {
+  flex-shrink: 0;
+  max-width: 30%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #999;
+  font-size: 13px;
 }
 
 /* 완료한 할 일은 흐리게 + 가운데 줄 */
