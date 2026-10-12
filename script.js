@@ -8,6 +8,10 @@ const emptyMessage = document.getElementById("empty-message");
 const errorMessage = document.getElementById("error-message");
 const filterButtons = document.querySelectorAll(".filter-button");
 const remainingCount = document.getElementById("remaining-count");
+const chick = document.getElementById("chick");
+const chickEmoji = document.getElementById("chick-emoji");
+const chickText = document.getElementById("chick-text");
+const chickBarFill = document.getElementById("chick-bar-fill");
 
 // Supabase에 접속해요. 주소와 열쇠는 config.js에 있어요.
 // (window.supabase는 index.html에서 인터넷으로 불러온 Supabase 라이브러리예요.
@@ -29,6 +33,40 @@ let editingId = null;
 
 // 어떤 할 일을 보여줄지: "all"(전체), "active"(진행 중), "done"(완료)
 let filter = "all";
+
+// 병아리가 지금 몇 단계인지 (단계가 바뀔 때만 톡 튀어 오르게 하려고 기억해 둬요)
+let chickStage = null;
+
+// 완료한 비율에 따라 알이 부화해요. 위에서부터 차례로 맞는 단계를 찾아요.
+const CHICK_STAGES = [
+  { min: 1, emoji: "🐥", text: "부화했어요! 🎉", className: "hatched" },
+  { min: 2 / 3, emoji: "🐣", text: "껍질이 깨지고 있어요!", className: "" },
+  { min: 1 / 3, emoji: "🥚", text: "톡톡… 안에서 뭔가 움직여요!", className: "wobble" },
+  { min: 0, emoji: "🥚", text: "알을 품고 있어요…", className: "" },
+];
+
+// 병아리 모습을 완료한 비율에 맞게 바꿔요
+function renderChick() {
+  // 불러오는 중이거나 할 일이 하나도 없으면 알을 숨겨요
+  chick.hidden = loading || todos.length === 0;
+  if (chick.hidden) return;
+
+  const doneCount = todos.filter((todo) => todo.is_done).length;
+  const ratio = doneCount / todos.length;
+  const index = CHICK_STAGES.findIndex((s) => ratio >= s.min);
+  const stage = CHICK_STAGES[index];
+
+  chickEmoji.textContent = stage.emoji;
+  chickEmoji.className = "chick-emoji " + stage.className;
+  chickText.textContent = stage.text + " (" + doneCount + " / " + todos.length + " 완료)";
+  chickBarFill.style.width = Math.round(ratio * 100) + "%";
+
+  // 단계가 바뀌었으면 톡 튀어 올라요 (처음 열었을 때는 빼고요)
+  if (chickStage !== null && chickStage !== index) {
+    chickEmoji.classList.add("pop");
+  }
+  chickStage = index;
+}
 
 // 오늘 날짜를 "2026-10-12" 모양의 글자로 만들어요 (내 컴퓨터 시간 기준)
 function todayString() {
@@ -148,6 +186,8 @@ function render() {
   // 남은(아직 완료하지 않은) 할 일 개수. 어떤 보기를 골랐든 전체에서 세요.
   const remaining = todos.filter((todo) => !todo.is_done).length;
   remainingCount.textContent = loading ? "" : "남은 할 일 " + remaining + "개";
+
+  renderChick();
 
   // 고치는 칸이 새로 생겼으면 커서를 넣고, 커서를 글자 맨 끝에 둬요
   const editInput = list.querySelector(".edit-input");
@@ -346,6 +386,11 @@ async function deleteTodo(id) {
 }
 
 addButton.addEventListener("click", addTodo);
+
+// 톡 튀어 오르기가 끝나면 원래 움직임(흔들흔들 등)으로 돌아가요
+chickEmoji.addEventListener("animationend", (event) => {
+  if (event.animationName === "pop") chickEmoji.classList.remove("pop");
+});
 
 // 보기 버튼을 누르면 그 보기로 바꿔요
 for (const button of filterButtons) {

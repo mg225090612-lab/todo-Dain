@@ -11,6 +11,13 @@
     <h1>dain의 할 일 목록</h1>
     <p class="subtitle">이다인의 할 일</p>
 
+    <!-- 할 일을 완료할수록 알이 부화해요 -->
+    <section id="chick" class="chick" aria-live="polite" hidden>
+      <div id="chick-emoji" class="chick-emoji">🥚</div>
+      <p id="chick-text" class="chick-text"></p>
+      <div class="chick-bar"><div id="chick-bar-fill" class="chick-bar-fill"></div></div>
+    </section>
+
     <!-- 할 일 입력 칸, 작성자 이름 칸·마감일 칸(둘 다 안 적어도 돼요), 추가 버튼 -->
     <div class="input-row">
       <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off">

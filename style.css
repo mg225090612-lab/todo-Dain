@@ -33,6 +33,79 @@ h1 {
   font-size: 14px;
 }
 
+/* 할 일을 완료할수록 부화하는 알 */
+.chick {
+  margin: -8px 0 20px;
+  text-align: center;
+}
+
+.chick-emoji {
+  display: inline-block;
+  font-size: 48px;
+  line-height: 1.2;
+}
+
+/* 흔들흔들 (안에서 뭔가 움직여요) */
+.chick-emoji.wobble {
+  animation: wobble 1.2s ease-in-out infinite;
+}
+
+/* 단계가 바뀔 때 톡 튀어 올라요 */
+.chick-emoji.pop {
+  animation: pop 0.5s ease-out;
+}
+
+/* 부화하면 기뻐서 폴짝폴짝 */
+.chick-emoji.hatched {
+  animation: hop 0.8s ease-in-out 3;
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* 움직임을 줄이도록 설정한 사람에게는 움직이지 않아요 */
+@media (prefers-reduced-motion: reduce) {
+  .chick-emoji {
+    animation: none !important;
+  }
+}
+
+.chick-text {
+  margin: 4px 0 8px;
+  color: #888;
+  font-size: 14px;
+}
+
+/* 완료한 만큼 차오르는 막대 */
+.chick-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.chick-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: #ffc83d;
+  transition: width 0.4s ease;
+}
+
 /* 입력 칸 + 추가 버튼 */
 .input-row {
   display: flex;
