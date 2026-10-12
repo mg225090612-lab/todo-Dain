@@ -11,10 +11,11 @@
     <h1>dain의 할 일 목록</h1>
     <p class="subtitle">이다인의 할 일</p>
 
-    <!-- 할 일 입력 칸, 작성자 이름 칸(안 적어도 돼요), 추가 버튼 -->
+    <!-- 할 일 입력 칸, 작성자 이름 칸·마감일 칸(둘 다 안 적어도 돼요), 추가 버튼 -->
     <div class="input-row">
       <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off">
       <input id="author-input" type="text" placeholder="이름" autocomplete="off" aria-label="작성자 이름 (선택)">
+      <input id="due-input" type="date" aria-label="마감일 (선택)" title="마감일 (안 적어도 돼요)">
       <button id="add-button" type="button">추가</button>
     </div>
 

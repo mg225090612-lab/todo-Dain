@@ -1,6 +1,7 @@
 // 화면에 있는 요소들을 찾아 둬요
 const input = document.getElementById("todo-input");
 const authorInput = document.getElementById("author-input");
+const dueInput = document.getElementById("due-input");
 const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
@@ -14,16 +15,47 @@ const db = window.supabase
   : null;
 
 // 할 일 목록. Supabase의 todos 표 한 줄이 할 일 하나예요.
-// 예: [{ id: 1, title: "장보기", author: "다인", is_done: false, created_at: "..." }]
-// (작성자 이름을 안 적은 할 일은 author가 null이에요)
+// 예: [{ id: 1, title: "장보기", author: "다인", due_date: "2026-10-15", is_done: false, created_at: "..." }]
+// (작성자 이름이나 마감일을 안 적은 할 일은 author, due_date가 null이에요)
 let todos = [];
 
 // 처음에 Supabase에서 목록을 불러오는 중인지
 let loading = true;
 
+// 오늘 날짜를 "2026-10-12" 모양의 글자로 만들어요 (내 컴퓨터 시간 기준)
+function todayString() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return now.getFullYear() + "-" + month + "-" + day;
+}
+
+// "2026-10-15"를 "10월 15일"로 바꿔요
+function formatDate(dateString) {
+  const [, month, day] = dateString.split("-");
+  return Number(month) + "월 " + Number(day) + "일";
+}
+
+// 마감이 가까운 순서로 줄 세워요. 마감일이 없는 할 일은 맨 아래로 가요.
+// 마감일이 같으면 먼저 만든 할 일이 위에 와요.
+function sortTodos() {
+  todos.sort((a, b) => {
+    if (a.due_date !== b.due_date) {
+      if (a.due_date === null) return 1;
+      if (b.due_date === null) return -1;
+      // "2026-10-15" 같은 글자는 사전 순서가 곧 날짜 순서예요
+      return a.due_date < b.due_date ? -1 : 1;
+    }
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? -1 : 1;
+    return a.id - b.id;
+  });
+}
+
 // 할 일 목록을 화면에 다시 그려요
 function render() {
   list.innerHTML = "";
+  sortTodos();
+  const today = todayString();
 
   for (const todo of todos) {
     const li = document.createElement("li");
@@ -47,6 +79,23 @@ function render() {
 
     // 작성자 이름은 할 일 오른쪽에 작은 회색 글씨로 보여줘요. 이름이 없으면 안 붙여요.
     li.append(checkbox, text);
+
+    // 마감일은 할 일 오른쪽에 보여줘요. 오늘이 마감이면 주황색, 지났으면 빨간색이에요.
+    // (이미 완료한 할 일은 색을 칠하지 않아요)
+    if (todo.due_date) {
+      const due = document.createElement("span");
+      due.className = "todo-due";
+      due.textContent = formatDate(todo.due_date);
+      if (!todo.is_done && todo.due_date < today) {
+        due.classList.add("overdue");
+        due.title = "마감일이 지났어요";
+      } else if (!todo.is_done && todo.due_date === today) {
+        due.classList.add("due-today");
+        due.title = "오늘이 마감이에요";
+      }
+      li.append(due);
+    }
+
     if (todo.author) {
       const author = document.createElement("span");
       author.className = "todo-author";
@@ -103,12 +152,23 @@ async function addTodo() {
   // 이름은 안 적어도 돼요. 비어 있으면 null(값 없음)로 저장해요.
   const author = authorInput.value.trim() || null;
 
+  // 년·월·일 중 일부만 적은 날짜는 브라우저가 "빈 값"으로 줘요.
+  // 그대로 두면 날짜가 조용히 사라지니까, 끝까지 고르라고 알려줘요.
+  if (dueInput.validity.badInput) {
+    showError("마감일을 년·월·일까지 다 골라 주세요. (마감일이 필요 없으면 날짜 칸을 비워 주세요)");
+    dueInput.focus();
+    return;
+  }
+
+  // 마감일도 안 골라도 돼요. 날짜 칸이 비어 있으면 null로 저장해요.
+  const dueDate = dueInput.value || null;
+
   // 저장하는 동안 버튼을 잠가서 두 번 추가되지 않게 해요
   addButton.disabled = true;
 
   const { data, error } = await db
     .from("todos")
-    .insert({ title: title, author: author })
+    .insert({ title: title, author: author, due_date: dueDate })
     .select()
     .single();
 
@@ -124,8 +184,9 @@ async function addTodo() {
   todos.push(data);
   render();
 
-  // 할 일 칸만 비워요. 이름은 다음에도 쓰기 쉽게 그대로 둬요.
+  // 할 일 칸과 마감일 칸을 비워요. 이름은 다음에도 쓰기 쉽게 그대로 둬요.
   input.value = "";
+  dueInput.value = "";
   input.focus();
 }
 
@@ -164,7 +225,7 @@ async function deleteTodo(id) {
 
 addButton.addEventListener("click", addTodo);
 
-// 할 일 칸이나 이름 칸에서 Enter를 누르면 추가해요
+// 할 일 칸, 이름 칸, 마감일 칸에서 Enter를 누르면 추가해요
 function handleEnter(event) {
   // 한글을 조합하는 중(글자가 아직 완성되지 않은 상태)에 누른 Enter는 무시해요.
   // 이걸 안 하면 Enter 한 번에 할 일이 두 번 추가될 수 있어요.
@@ -176,6 +237,7 @@ function handleEnter(event) {
 
 input.addEventListener("keydown", handleEnter);
 authorInput.addEventListener("keydown", handleEnter);
+dueInput.addEventListener("keydown", handleEnter);
 
 // 처음 열었을 때 "불러오는 중"을 보여주고, Supabase에서 목록을 가져와요
 render();

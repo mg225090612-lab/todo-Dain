@@ -41,7 +41,8 @@ h1 {
 }
 
 #todo-input,
-#author-input {
+#author-input,
+#due-input {
   flex: 1;
   min-width: 0;
   padding: 12px 14px;
@@ -53,11 +54,52 @@ h1 {
 
 /* 이름 칸은 좁게 */
 #author-input {
-  flex: 0 0 88px;
+  flex: 0 0 80px;
+}
+
+/* 마감일 칸은 날짜가 딱 들어갈 만큼만, 글씨는 조금 작게 */
+#due-input {
+  flex: 0 0 auto;
+  padding: 12px 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+/* 화면이 좁으면(휴대폰 등) 두 줄로 나눠요.
+   첫 줄은 할 일 칸·추가 버튼, 둘째 줄은 이름·마감일 칸이에요. */
+@media (max-width: 520px) {
+  .card {
+    padding: 28px 20px;
+  }
+
+  .input-row {
+    flex-wrap: wrap;
+  }
+
+  /* 추가 버튼(72px)과 사이 간격(8px)만 남기고 첫 줄을 다 써요 */
+  #todo-input {
+    flex: 0 0 calc(100% - 80px);
+  }
+
+  #add-button {
+    flex: 0 0 72px;
+    padding: 12px 0;
+  }
+
+  /* order가 클수록 뒤로 가요. 이름·마감일을 버튼 뒤(둘째 줄)로 보내요. */
+  #author-input,
+  #due-input {
+    order: 1;
+  }
+
+  #author-input {
+    flex: 1 1 60px;
+  }
 }
 
 #todo-input:focus,
-#author-input:focus {
+#author-input:focus,
+#due-input:focus {
   outline: none;
   border-color: #4a7dff;
 }
@@ -128,6 +170,25 @@ h1 {
   white-space: nowrap;
   color: #999;
   font-size: 13px;
+}
+
+/* 할 일 오른쪽의 마감일 */
+.todo-due {
+  flex-shrink: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+/* 오늘이 마감이면 주황색 */
+.todo-due.due-today {
+  color: #d97706;
+  font-weight: bold;
+}
+
+/* 마감일이 지났으면 빨간색 */
+.todo-due.overdue {
+  color: #e5484d;
+  font-weight: bold;
 }
 
 /* 완료한 할 일은 흐리게 + 가운데 줄 */
