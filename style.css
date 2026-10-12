@@ -135,6 +135,50 @@ h1 {
   font-size: 14px;
 }
 
+/* 보기 버튼과 남은 할 일 개수가 있는 줄 */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  background: #fff;
+  color: #555;
+  font-size: 14px;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.filter-button:hover {
+  border-color: #4a7dff;
+}
+
+/* 지금 고른 보기 버튼 */
+.filter-button.selected {
+  border-color: #4a7dff;
+  background: #4a7dff;
+  color: #fff;
+}
+
+#remaining-count {
+  flex-shrink: 0;
+  color: #888;
+  font-size: 14px;
+}
+
 /* 할 일 목록 */
 #todo-list {
   margin: 0;

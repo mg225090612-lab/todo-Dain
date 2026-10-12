@@ -22,6 +22,16 @@
     <!-- 저장·불러오기에 실패하면 여기에 오류가 보여요 -->
     <p id="error-message" role="alert" hidden></p>
 
+    <!-- 보기 버튼(전체·진행 중·완료)과 남은 할 일 개수 -->
+    <div class="filter-row">
+      <div class="filter-buttons" role="group" aria-label="할 일 골라 보기">
+        <button type="button" class="filter-button" data-filter="all">전체</button>
+        <button type="button" class="filter-button" data-filter="active">진행 중</button>
+        <button type="button" class="filter-button" data-filter="done">완료</button>
+      </div>
+      <span id="remaining-count"></span>
+    </div>
+
     <!-- 할 일들이 여기에 들어가요 -->
     <ul id="todo-list"></ul>
 

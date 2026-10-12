@@ -6,6 +6,8 @@ const addButton = document.getElementById("add-button");
 const list = document.getElementById("todo-list");
 const emptyMessage = document.getElementById("empty-message");
 const errorMessage = document.getElementById("error-message");
+const filterButtons = document.querySelectorAll(".filter-button");
+const remainingCount = document.getElementById("remaining-count");
 
 // Supabase에 접속해요. 주소와 열쇠는 config.js에 있어요.
 // (window.supabase는 index.html에서 인터넷으로 불러온 Supabase 라이브러리예요.
@@ -24,6 +26,9 @@ let loading = true;
 
 // 지금 고치고 있는 할 일의 id. 고치는 중이 아니면 null이에요.
 let editingId = null;
+
+// 어떤 할 일을 보여줄지: "all"(전체), "active"(진행 중), "done"(완료)
+let filter = "all";
 
 // 오늘 날짜를 "2026-10-12" 모양의 글자로 만들어요 (내 컴퓨터 시간 기준)
 function todayString() {
@@ -60,7 +65,14 @@ function render() {
   sortTodos();
   const today = todayString();
 
-  for (const todo of todos) {
+  // 고른 보기에 맞는 할 일만 골라요
+  const visibleTodos = todos.filter((todo) => {
+    if (filter === "active") return !todo.is_done;
+    if (filter === "done") return todo.is_done;
+    return true;
+  });
+
+  for (const todo of visibleTodos) {
     const li = document.createElement("li");
     li.className = "todo-item" + (todo.is_done ? " done" : "");
 
@@ -114,9 +126,28 @@ function render() {
     list.append(li);
   }
 
-  // 불러오는 중이거나 할 일이 없을 때만 안내 문구를 보여줘요
-  emptyMessage.textContent = loading ? "불러오는 중…" : "할 일이 없습니다 🎉";
-  emptyMessage.hidden = !loading && todos.length > 0;
+  // 불러오는 중이거나 보여줄 할 일이 없을 때만 안내 문구를 보여줘요
+  if (loading) {
+    emptyMessage.textContent = "불러오는 중…";
+  } else if (todos.length === 0) {
+    emptyMessage.textContent = "할 일이 없습니다 🎉";
+  } else if (filter === "active") {
+    emptyMessage.textContent = "진행 중인 할 일이 없어요 🎉";
+  } else {
+    emptyMessage.textContent = "완료한 할 일이 없어요";
+  }
+  emptyMessage.hidden = !loading && visibleTodos.length > 0;
+
+  // 지금 고른 보기 버튼을 파랗게 칠해요
+  for (const button of filterButtons) {
+    const selected = button.dataset.filter === filter;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", selected);
+  }
+
+  // 남은(아직 완료하지 않은) 할 일 개수. 어떤 보기를 골랐든 전체에서 세요.
+  const remaining = todos.filter((todo) => !todo.is_done).length;
+  remainingCount.textContent = loading ? "" : "남은 할 일 " + remaining + "개";
 
   // 고치는 칸이 새로 생겼으면 커서를 넣고, 커서를 글자 맨 끝에 둬요
   const editInput = list.querySelector(".edit-input");
@@ -315,6 +346,14 @@ async function deleteTodo(id) {
 }
 
 addButton.addEventListener("click", addTodo);
+
+// 보기 버튼을 누르면 그 보기로 바꿔요
+for (const button of filterButtons) {
+  button.addEventListener("click", () => {
+    filter = button.dataset.filter;
+    render();
+  });
+}
 
 // 할 일 칸, 이름 칸, 마감일 칸에서 Enter를 누르면 추가해요
 function handleEnter(event) {
