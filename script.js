@@ -22,6 +22,9 @@ let todos = [];
 // 처음에 Supabase에서 목록을 불러오는 중인지
 let loading = true;
 
+// 지금 고치고 있는 할 일의 id. 고치는 중이 아니면 null이에요.
+let editingId = null;
+
 // 오늘 날짜를 "2026-10-12" 모양의 글자로 만들어요 (내 컴퓨터 시간 기준)
 function todayString() {
   const now = new Date();
@@ -66,9 +69,14 @@ function render() {
     checkbox.checked = todo.is_done;
     checkbox.addEventListener("change", () => toggleTodo(todo.id));
 
-    const text = document.createElement("span");
-    text.className = "todo-text";
-    text.textContent = todo.title;
+    // 고치는 중인 할 일은 글자 대신 입력 칸을 보여줘요
+    const text = todo.id === editingId ? createEditInput(todo) : document.createElement("span");
+    if (todo.id !== editingId) {
+      text.className = "todo-text";
+      text.textContent = todo.title;
+      text.title = "두 번 누르면 고칠 수 있어요";
+      text.addEventListener("dblclick", () => startEdit(todo.id));
+    }
 
     const deleteButton = document.createElement("button");
     deleteButton.className = "delete-button";
@@ -109,6 +117,89 @@ function render() {
   // 불러오는 중이거나 할 일이 없을 때만 안내 문구를 보여줘요
   emptyMessage.textContent = loading ? "불러오는 중…" : "할 일이 없습니다 🎉";
   emptyMessage.hidden = !loading && todos.length > 0;
+
+  // 고치는 칸이 새로 생겼으면 커서를 넣고, 커서를 글자 맨 끝에 둬요
+  const editInput = list.querySelector(".edit-input");
+  if (editInput && document.activeElement !== editInput) {
+    editInput.focus();
+    editInput.setSelectionRange(editInput.value.length, editInput.value.length);
+  }
+}
+
+// 할 일을 고치는 입력 칸을 만들어요. 원래 글자가 들어 있어요.
+function createEditInput(todo) {
+  const editInput = document.createElement("input");
+  editInput.type = "text";
+  editInput.className = "edit-input";
+  editInput.value = todo.title;
+  editInput.setAttribute("aria-label", "할 일 고치기");
+
+  // 한글을 조합하는 중에 누른 Enter를 기억해 둬요 (아래 compositionend에서 써요)
+  let enterWhileComposing = false;
+
+  editInput.addEventListener("keydown", (event) => {
+    if (event.isComposing || event.keyCode === 229) {
+      // 마지막 글자가 아직 조합 중일 때 Enter를 누르면, 여기서 바로 저장하면
+      // 마지막 글자가 잘릴 수 있어요. 글자가 완성된 뒤(compositionend)에 저장해요.
+      if (event.key === "Enter") enterWhileComposing = true;
+      return;
+    }
+    if (event.key === "Enter") saveEdit(todo.id, editInput.value);
+    if (event.key === "Escape") cancelEdit();
+  });
+
+  editInput.addEventListener("compositionend", () => {
+    if (!enterWhileComposing) return;
+    enterWhileComposing = false;
+    // 브라우저가 완성된 글자를 입력 칸에 넣을 때까지 아주 잠깐 기다렸다가 저장해요
+    setTimeout(() => saveEdit(todo.id, editInput.value), 0);
+  });
+
+  // 다른 곳을 눌러서 칸을 벗어나도 저장해요
+  editInput.addEventListener("blur", () => saveEdit(todo.id, editInput.value));
+
+  return editInput;
+}
+
+// 할 일 고치기를 시작해요
+function startEdit(id) {
+  editingId = id;
+  render();
+}
+
+// 고치기를 취소하고 원래 글자로 돌아가요
+function cancelEdit() {
+  if (editingId === null) return;
+  editingId = null;
+  render();
+}
+
+// 고친 글자를 저장해요
+async function saveEdit(id, value) {
+  // 이미 저장했거나 취소했으면 아무것도 안 해요.
+  // (Enter와 칸 벗어나기가 거의 동시에 일어나도 한 번만 저장되게 해요)
+  if (editingId !== id) return;
+  editingId = null;
+
+  const todo = todos.find((t) => t.id === id);
+  const title = value.trim();
+
+  // 글자를 다 지웠거나 바뀐 게 없으면 저장하지 않고 원래대로 둬요
+  if (title === "" || title === todo.title) {
+    render();
+    return;
+  }
+
+  const { error } = await db.from("todos").update({ title: title }).eq("id", id);
+
+  if (error) {
+    showError("할 일을 고치지 못했어요: " + error.message);
+  } else {
+    showError("");
+    todo.title = title;
+  }
+  // 실패했을 때도 다시 그려서 원래 글자로 되돌려요
+  render();
 }
 
 // 오류를 화면에 보여줘요. 빈 글자를 넘기면 오류 칸을 숨겨요.

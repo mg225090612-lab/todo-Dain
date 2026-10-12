@@ -172,6 +172,21 @@ h1 {
   font-size: 13px;
 }
 
+/* 할 일을 고치는 입력 칸 (할 일 글자를 두 번 누르면 나와요) */
+.edit-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid #4a7dff;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.edit-input:focus {
+  outline: none;
+}
+
 /* 할 일 오른쪽의 마감일 */
 .todo-due {
   flex-shrink: 0;
